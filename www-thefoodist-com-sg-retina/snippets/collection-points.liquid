@@ -1,0 +1,8 @@
+{% assign collection_points_array = settings.collection_points  | split: ',' %}
+
+<select id="collection_point" name="properties[Collection_Point]">
+  <option value="na">Please select your required collection point. Exact location will be sent to you prior to delivery.</option>
+{% for collection_point in collection_points_array %}
+<option value="{{ collection_point }}">{{ collection_point }}</option>
+{% endfor %}
+</select>

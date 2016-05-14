@@ -1,0 +1,346 @@
+<!-- Bold Duplicate And Hide -->{% if product.metafields.inventory.ShappifyHidden == "true" %}
+Product is not available
+{% break %}{% endif %}
+
+<!-- Bold Apps: Customer Pricing -->
+{% include 'shappify-csp' %}
+
+<!-- csp tag-HIDE --> 
+{% assign csp_visible = true %}
+{% for product_tag in product.tags %}
+{% if csp_visible == true %}
+{% capture last_tag_piece %}{{ product_tag | split: '-' | last }}{% endcapture %}
+{% if last_tag_piece == 'HIDE' %}
+{% capture first_tag_piece %}{{ product_tag | split: '-' | first }}{% endcapture %}
+ 
+{% if first_tag_piece == 'default' %}
+{% assign csp_visible = false %}
+{% assign csp_tag_group = shop.metafields.shop_csp_tag_group.shop_csp_tag | split: ',' %}
+{% for csp_tag in csp_tag_group %}
+{% if customer.tags contains csp_tag %}
+{% assign csp_visible = true %}
+{% endif %}
+{% endfor %}
+{% else %}
+{% if customer.tags contains first_tag_piece %}
+{% assign csp_visible = false %}
+{% endif %}
+{% endif %}
+{% endif %}
+{% endif %}
+{% endfor %}
+ 
+ 
+{% if csp_visible == false %} 
+Product is not available
+{% else %}
+
+<div class="sixteen columns">
+  <div class="clearfix breadcrumb">
+    <div class="right mobile_hidden">
+      {% if collection.previous_product %}
+        <a href="{{ collection.previous_product }}">&larr; Prev</a>
+        {% if collection.next_product %}&nbsp; | &nbsp;{% endif %}
+      {% endif %}
+
+      {% if collection.next_product %}
+        <a href="{{collection.next_product}}">Next &rarr;</a>
+      {% endif %}
+    </div>
+
+    <span itemscope itemtype="http://data-vocabulary.org/Breadcrumb"><a href="{{ shop.url }}" title="{{ shop.name | escape }}" itemprop="url"><span itemprop="title">Home</span></a></span> 
+    &nbsp; / &nbsp;
+    <span itemscope itemtype="http://data-vocabulary.org/Breadcrumb">
+      {% if collection %}
+        <a href="{{ collection.url }}" title="{{ collection.title | escape }}">{{ collection.title }}</a>
+      {% else %}
+        <a href="/collections/all" title="All Products">Products</a>
+      {% endif %}
+    </span>
+    &nbsp; / &nbsp; 
+    {{ product.title }}
+  </div>
+</div>
+
+{% if settings.product_sidebar %}
+  {% include 'sidebar' %}
+  <div class="twelve columns" itemscope itemtype="http://data-vocabulary.org/Product" id="product-{{ product.id }}">
+{% else %}
+  <div class="sixteen columns" itemscope itemtype="http://data-vocabulary.org/Product" id="product-{{ product.id }}">
+{% endif %}
+
+
+	<div class="section product_section clearfix">
+	  
+  	 {% if settings.product_images_position == 'left' %}             
+       <div class="{% if settings.product_sidebar %}six{% else %}eight{% endif %} columns {% if product-images == blank %}{% if settings.product_images_position == 'left' %}alpha{% else %}omega{% endif %}{% endif %}">
+         {% include 'product-images' %}
+        </div>
+     {% endif %}
+
+     <div class="{% if settings.product_sidebar %}six{% else %}eight{% endif %} columns {%if settings.product_images_position == 'left' %}omega{% else %}alpha{% endif %}">
+       <h1 class="product_name" itemprop="name">{{ product.title }}</h1>
+       {% if settings.display_vendor %}
+          <p class="vendor">
+            <span class="label">by:</span> <span itemprop="brand">{{ product.vendor | link_to_vendor }}</span>
+          </p>
+       {% endif %}
+       
+{% assign tag_price = 0 %}
+{% assign tag = 'default' %}
+{% if customer.tags.size > 0 %}
+{% for cust_tag in customer.tags %}
+{% if product.metafields.shappify_csp[cust_tag] %}
+{% assign tag = cust_tag %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if product.metafields.shappify_csp[tag] %}
+{% assign tag_price = 1 %}
+{% endif %}
+
+<!-- Custom code DB  -->
+{% assign corporate = 'false' %}
+{% if customer %}
+{% for tag in customer.tags %}
+{% if  tag == 'Corporate' %}
+{% assign corporate = 'true' %}
+{% endif %}
+{%endfor%}
+{%endif%}
+
+       
+{% if tag_price != 1 %}       
+       
+       <p class="modal_price" itemprop="offerDetails" itemscope itemtype="http://data-vocabulary.org/Offer">
+         <meta itemprop="currency" content="{{ shop.currency }}" />
+         <meta itemprop="seller" content="{{ shop.name | escape }}" />
+         <meta itemprop="availability" content="{% if product.available %}in_stock{% else %}out_of_stock{% endif %}" />
+          {% assign deadline =  product.metafields.deadline.deadline  %}
+        
+		{% if product.type == "Tasting Box" %}
+           {% if deadline == 'true' %}
+         <span><strong>Ordering is now closed</strong> - </span>
+           {% else %}
+			 <span class="sold_out">{% if product.available == false %}{{ settings.sold_out_text }} - {% endif %}</span>
+         
+           {% endif %}
+         {% else %}
+         <span class="sold_out">{% if product.available == false %}{{ settings.sold_out_text }} - {% endif %}</span>
+          {% endif %}
+         
+         {% include 'saw_compute_discount' with product %}
+
+ 
+  {% if saw_discount == 1 %}
+          <!-- original prices here -->
+             <span itemprop="price" content="{{ product.price | money_without_currency }}" class="{% if product.compare_at_price_max > product.price %}sale{% endif %}">
+                <span class="current_price">
+                  {{ product.price | money }}
+                </span>
+             </span>
+            <span class="was_price">
+              {% if product.price < product.compare_at_price_max %}
+                {{ product.compare_at_price | money }}
+              {% endif %}
+             </span>
+  {% else %}
+	         <span itemprop="price" content="{{ saw_product_price | money_without_currency }}" class="">
+                <span class="current_price">
+                  {{ saw_product_price | money }}
+                </span>
+             </span>
+            <span class="was_price">
+                {{ saw_product_compare_at_price | money }}
+             </span>
+  {% endif %}
+ 
+         
+         
+         
+         {% comment %}
+         <!-- Custom code DB  -->
+       {% if product.type == "Tasting Box" %}
+         
+         <span itemprop="price" content="{{ product.price | money_without_currency }}" class="{% if product.compare_at_price_max > product.price %}sale{% endif %}">
+            <span class="current_price">
+              {% if corporate == 'true' %}
+    		{{ product.variants[1].price | money }}
+              {% else %}
+       	{{ product.variants[0].price | money }}
+              {%endif%}
+              
+              
+            </span>
+         </span>
+         {% else %}
+         <span itemprop="price" content="{{ product.price | money_without_currency }}" class="{% if product.compare_at_price_max > product.price %}sale{% endif %}">
+            <span class="current_price">
+              {{ product.price | money }}
+            </span>
+         </span>
+         {%endif%}
+         <span class="was_price">
+          {% if product.price < product.compare_at_price_max %}
+            {{ product.compare_at_price | money }}
+          {% endif %}
+         </span>
+         
+         {% endcomment %}
+         
+       </p>
+     
+{% else %}
+{% capture attribute_price_min %}{{tag}}_raw_lownum{% endcapture %}
+{% capture attribute_price_max %}{{tag}}_price_high{% endcapture %}
+{% capture attribute_price %}{{tag}}{% endcapture %}
+ 
+       <p class="modal_price" itemprop="offerDetails" itemscope itemtype="http://data-vocabulary.org/Offer">
+         <meta itemprop="currency" content="{{ shop.currency }}" />
+         <meta itemprop="seller" content="{{ shop.name | escape }}" />
+         <meta itemprop="availability" content="{% if product.available %}in_stock{% else %}out_of_stock{% endif %}" />
+         {% assign deadline =  product.metafields.deadline.deadline  %}
+        
+		{% if product.type == "Tasting Box" %}
+           {% if deadline == 'true' %}
+            <span>Ordering is now closed</span>
+           {% else %}
+			 <span class="sold_out">{% if product.available == false %}{{ settings.sold_out_text }} - {% endif %}</span>
+         
+           {% endif %}
+         {% else %}
+         <span class="sold_out">{% if product.available == false %}{{ settings.sold_out_text }} - {% endif %}</span>
+         {% endif %}
+         <span itemprop="price" content="{{ product.price | money_without_currency }}" class="{% if product.compare_at_price_max > product.price %}sale{% endif %}">
+            <span class="current_price">
+              {{ product.metafields.shappify_csp[attribute_price] }}
+            </span>
+         </span>
+         <span class="was_price">
+          {% if product.price < product.compare_at_price_max %}
+            {{ product.compare_at_price | money }}
+          {% endif %}
+         </span>
+       </p>
+ 
+{% endif %}       
+
+      {% include 'product-notify-me' %}
+   
+
+       {% if settings.product_description_position == "top" %}
+         {% if product.description != blank %}
+          <div class="description" itemprop="description">
+            {{ product.description | split: '<!-- split -->' | first }}
+          </div>
+        {% endif %}
+       {% endif %}
+		
+            
+       {% if settings.product_description_position == "bottom" %}
+         {% if product.description != blank %}
+          <div class="description" itemprop="description">
+           {{ product.description | split: '<!-- split -->' | first }}
+          </div>
+         {% endif %}
+       {% endif %}
+
+      {% if settings.display_collections or settings.display_tags or settings.display_type %}
+       <hr />
+      {% endif %}
+     
+       <div class="meta">
+         {% if settings.display_collections %}
+           <p>
+             <span class="label">Collections:</span> 
+             <span>
+              {% for col in product.collections %}
+                <a href="{{ col.url }}" title="{{ col.title }}">{{ col.title }}</a>{% unless forloop.last %},{% endunless %} 
+              {% endfor %}
+            </span>
+          </p>
+         {% endif %}
+       
+         {% if settings.display_tags %}
+            <p>
+              {% for tag in product.tags %}
+                {% if forloop.first %}
+                  <span class="label">Category:</span> 
+                {% endif %}
+
+                {% unless tag contains 'meta-related-collection-' %}
+                  <span>
+                      <a href="/collections/{% if collection %}{{ collection.handle }}{% else %}all{% endif %}/{{ tag | handle }}" title="Products tagged {{ tag | escape}}">{{ tag }}</a>{% unless forloop.last %},{% endunless %} 
+                  </span>
+                {% endunless %} 
+              {% endfor %}
+            </p>
+         {% endif %}
+       
+        {% if settings.display_type %}
+           <p>
+             <span class="label">Type:</span> <span itemprop="category">{{ product.type | link_to_type }}</span>
+           </p>
+        {% endif %}
+       </div>
+
+      {% include "social-buttons" with "product" %}     
+    </div>
+    
+    {% if settings.product_images_position == 'right' %}   
+      <div class="{% if settings.product_sidebar %}six{% else %}eight{% endif %} columns {% if product-images == blank %}{% if settings.product_images_position == 'left' %}alpha{% else %}omega{% endif %}{% endif %}">          
+        {% include 'product-images' %}
+        {% include "social-buttons" with "product" %}
+      </div>
+    {% endif %}
+  </div>
+
+  {% if product.description contains "<!-- split -->"  %}
+    <br class="clear" />
+    <div class="section clearfix">
+      <div class="description">
+        {{ product.description | split: '<!-- split -->' | last }}
+      </div>
+    </div>
+  {% endif %}
+
+    
+
+  {% if settings.display_related_products %}
+    {% capture limit %}{{ settings.products_per_row | plus: 1 }}{% endcapture %}
+
+    {% if collection and collection.all_products_count > 1 %}
+      {% assign col = collection.handle %}
+    {% else %}
+      {% assign col = product.collections.last.handle %}
+    {% endif %}
+
+    {% for tag in product.tags %}
+      {% if tag contains 'meta-related-collection-' %}
+        {% assign col = tag | remove: 'meta-related-collection-' %}
+        {% assign collection = collections[col] %}
+        {% capture limit %}{{ collection.products_count | plus: 1 }}{% endcapture %}
+      {% endif %}
+    {% endfor %}
+      
+    {% if col and collections[col].all_products_count > 0 %}
+      <br class="clear" />
+      <br class="clear" />
+      <div class="{% if settings.product_sidebar %}twelve{% else %}sixteen{% endif %} columns">
+        <h4 class="title center">{{ settings.related_products_title }}</h4>
+      </div>
+
+      {% assign skip_product = product %}
+      {% assign products = collections[col].products %}
+      {% assign products_per_row = settings.products_per_row %}
+      <div class="{% if settings.product_sidebar %}twelve{% else %}sixteen{% endif %} columns">
+        {% include 'product-loop' with settings.product_sidebar %}
+      </div>
+    {% endif %}
+    
+  {% endif %}
+
+</div>
+    
+{% endif %}    
+    

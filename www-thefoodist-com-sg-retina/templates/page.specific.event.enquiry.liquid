@@ -1,0 +1,99 @@
+<div class="sixteen columns clearfix collection_nav">
+  <h1 class="collection_title">
+    {{ page.title }}
+  </h1>
+</div>
+
+<div class="sixteen columns page">
+    {{ page.content }}
+  {% form 'contact' %}
+
+{% if form.posted_successfully? %}
+    <div class="successForm feedback">
+      <p>Thanks for contacting us! We'll get back to you as soon as possible.</p>
+    </div>
+{% endif %}
+
+{% if form.errors %}
+<div class="errorForm feedback">
+  <!-- {{ form.errors.size }} or {{ form.errors | size }} -->
+  <p>Oops, sorry. We were unable to submit your inquiry because it contained {{ form.errors | size | pluralize: 'an error', 'a few errors' }}. Please correct the following and submit again:</p>
+  {% for field in form.errors %}
+    <p>The {{ field | capitalize | replace: 'Body', 'Message' }} field {{ form.errors.messages[field] }}.</p>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div id="contactFormWrapper">
+  <p>
+    <label>Your Name:</label><br/>
+    <input type="text" id="contactFormName" name="contact[name]" placeholder="John Doe" />
+  </p>
+  <p>
+    <label>Email:</label><br/>
+    <input type="email" id="contactFormEmail" name="contact[email]" placeholder="john@example.com" />
+  </p>
+  <p>
+    <label>Phone Number:</label><br/>
+    <input type="telephone" id="contactFormTelephone" name="contact[phone]" placeholder="555-555-1234" />
+  </p>
+  <p>
+    
+    
+    {{ 'http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css' | stylesheet_tag }}
+{{ '//ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js' | script_tag }}
+
+<div style="width:300px; clear:both;">
+  <p>
+    <label for="date">Select event date:</label>
+    <input id="date" type="text" name="attributes[date]" value="{{ cart.attributes.date }}" />
+    <span style="display:block" class="instructions"> </span>
+  </p>
+</div>
+
+<script>
+jQuery(function() {
+  jQuery("#date").datepicker( { 
+    minDate: +1, 
+    maxDate: "+12M"
+  } );
+});
+</script>
+    
+    
+  </p>
+  <p>
+  <label>Type of question:</label>
+   <select id="contactFormQuestionType" name="contact[question type]">
+       <option>Silly</option>
+       <option>Serious</option>
+   </select>
+  </p>
+  <p>
+    <label>Gender</label>
+   <input type="radio" id="contactFormSexMale" name="contact[sex]" value="Male" />Male<br>
+    <input type="radio" id="contactFormSexFemale" name="contact[sex]" value="Female" />Female</p>
+  <p>
+    <label>Would you like additional information on kittens?</label>
+   <input type="checkbox" id="contactFormAddInfo" name="contact[Yes Please]" value="Yes Please" />Yes Please!
+  </p>
+  
+  <p>
+    <label>Message:</label><br/>
+    <textarea rows="15" cols="75" id="contactFormMessage" name="contact[body]" placeholder="Your Message"></textarea>
+  </p>
+  <p>
+    <input type="submit" id="contactFormSubmit" value="REQUEST QUOTE" />
+  </p>
+</div><!-- contactWrapper -->
+
+{% endform %}
+
+<style>
+.contact-form {margin:1em 0}
+.feedback {padding:0.5em 0.7em;-webkit-border-radius: 5px;-moz-border-radius: 5px;border-radius: 5px}
+.feedback p {padding:0.5em 0 !important;margin:0 !important}
+.successForm {background:#BDE0A8;color:green}
+.errorForm {background:#EEBDBD;color:red}
+</style>
+</div>

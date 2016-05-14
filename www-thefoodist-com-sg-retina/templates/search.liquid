@@ -1,0 +1,224 @@
+{% assign search_pagination = settings.pagination_limit %}
+{% paginate search.results by search_pagination %}
+
+<div class="sixteen columns clearfix collection_nav">
+  <h1 class="collection_title {% if search.performed %}collection_title_tags{% endif %}">Search</h1>
+  {% if search.performed %}
+    <ul class="collection_menu">
+      <li>
+        {{ search.results_count }} {{ search.results_count | pluralize: 'result', 'results' }} for <strong>"{{search.terms | escape}}"</strong>
+      </li>
+    </ul>    
+  {% endif %}
+</div>
+
+{% if search.performed %}
+  
+  {% if search.results == empty %}    
+    <br class="clear" />
+    <br class="clear" />
+    <div class="clearfix">    
+      <p class="quote">Your search for <strong>"{{ search.terms | escape }}"</strong> did not match any results.</p>         
+    </div>
+
+    <br class="clear" />
+    <br class="clear" />
+  {% else %}  
+
+ {% if settings.search_option == 'everything' or search.results.first.price == blank %}
+
+  {% if settings.collection_sidebar %}
+    {% include 'sidebar' %}
+    <div class="twelve columns">
+  {% else %}
+    <div class="sixteen columns">
+  {% endif %}
+
+    {% for item in search.results %}
+      <!-- Bold Duplicate And Hide -->{% if item.metafields.inventory.ShappifyHidden == "true" %}{% continue %}{% endif %}
+<!-- csp tag-HIDE --> 
+{% assign csp_visible = true %}
+{% for product_tag in item.tags %}
+{% if csp_visible == true %}
+{% capture last_tag_piece %}{{ product_tag | split: '-' | last }}{% endcapture %}
+{% if last_tag_piece == 'HIDE' %}
+{% capture first_tag_piece %}{{ product_tag | split: '-' | first }}{% endcapture %}
+ 
+{% if first_tag_piece == 'default' %}
+{% assign csp_visible = false %}
+{% assign csp_tag_group = shop.metafields.shop_csp_tag_group.shop_csp_tag | split: ',' %}
+{% for csp_tag in csp_tag_group %}
+{% if customer.tags contains csp_tag %}
+{% assign csp_visible = true %}
+{% endif %}
+{% endfor %}
+{% else %}
+{% if customer.tags contains first_tag_piece %}
+{% assign csp_visible = false %}
+{% endif %}
+{% endif %}
+{% endif %}{% endif %}
+{% endfor %}
+ 
+{% if csp_visible == false %}{% else %}      
+      
+      <div class="product_row">
+  
+        {% if item.featured_image %}
+          <div class="four columns alpha">
+             <a href="{{ item.url }}" title="{{ item.title | escape }}">
+               <img src="{{ item.featured_image | product_img_url: 'large' }}"  alt="{{ item.title | escape }}" />
+             </a>
+          </div> 
+        {% endif %}
+        
+        {% if settings.collection_sidebar %}
+          <div class="{% if item.featured_image %}eight{% else %}twelve{% endif %} columns omega align_left">
+        {% else %}
+          <div class="{% if item.featured_image %}twelve{% else %}sixteen{% endif %} columns omega align_left">
+        {% endif %}        
+
+          <p>
+            <a href="{{item.url }}" title="{{ item.title | escape }}">{{ item.title }}</a>
+          </p> 
+
+          {% if item.price %}
+             <div class="info"> 
+               
+{% assign tag_price = 0 %}
+{% assign tag = 'default' %}
+{% if customer.tags.size > 0 %}
+{% for cust_tag in customer.tags %}
+{% if item.metafields.shappify_csp[cust_tag] %}
+{% assign tag = cust_tag %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% if item.metafields.shappify_csp[tag] %}
+{% assign tag_price = 1 %}
+{% endif %}
+{% if tag_price != 1 %}               
+               
+                <span class="price">
+                  
+{% include 'saw_compute_discount' with item %}
+ 
+ 
+ 
+  {% if saw_discount == 1 %}
+          <!-- original prices here -->
+                  {% if item.compare_at_price_max > item.price %}
+                    <span class="was_price">{{ item.compare_at_price_max | money }}</span>
+                  {% endif %}
+                    
+                  {% if item.available %}
+                    {% if item.price_varies %}
+                      {% if item.compare_at_price_max > item.price %}
+                        <br />
+                      {% endif %}
+                      <small><em>from</em></small>
+                    {% endif %}
+                    {{ item.price_min | money }}
+                  {% else %}
+                    {{ item.price_min | money }} - Sold Out
+                  {% endif %}
+                  
+  {% else %}
+                    <span class="was_price">{{ saw_product_compare_at_price | money }}</span>
+                    
+                  {% if item.available %}
+                    {% if item.price_varies %}
+                      {% if item.compare_at_price_max > item.price %}
+                        <br />
+                      {% endif %}
+                      <small><em>from</em></small>
+                    {% endif %}
+                    {{ saw_product_price | money }}
+                  {% else %}
+                    {{ saw_product_price | money }} - Sold Out
+                  {% endif %}                  
+ 	 
+  {% endif %}
+ 
+                  
+
+                </span>
+            </div>
+            
+{% else %}
+{% capture attribute_price_min %}{{tag}}_raw_lownum{% endcapture %}
+{% capture attribute_price_max %}{{tag}}_price_high{% endcapture %}
+{% capture attribute_price %}{{tag}}{% endcapture %}
+ 
+                <span class="price">
+                  {% if item.compare_at_price_max > item.price %}
+                    <span class="was_price">{{ item.compare_at_price_max | money }}</span>
+                  {% endif %}
+                    
+                  {% if item.available %}
+                    {% if item.metafields.shappify_csp[attribute_ind] %}
+                      {% if item.compare_at_price_max > item.price %}
+                        <br />
+                      {% endif %}
+                      <small><em>from</em></small>
+                    {% endif %}
+                    {{ item.metafields.shappify_csp[attribute_price] }}
+                  {% else %}
+                    {{ item.metafields.shappify_csp[attribute_price] }} - Sold Out
+                  {% endif %}
+                </span>
+            </div>
+ 
+{% endif %}            
+            
+          {% endif %}
+          
+          <p>
+            {{ item.content | strip_html | truncatewords: 40 | highlight: search.terms | replace: 'Description', '' | replace: 'Specs', '' | replace: 'Shipping', '' }}
+          </p>         
+        </div>
+      </div>  
+    <hr />
+        
+{% endif %}        
+        
+   {% endfor %}  
+  </div>
+
+ {% else %}
+      {% if settings.collection_sidebar %}
+        {% include 'sidebar' %}
+        <div class="twelve columns">
+      {% else %}
+        <div class="sixteen columns">
+      {% endif %}
+
+      {% assign products = search.results %}
+      {% assign products_per_row = settings.products_per_row %}
+      {% include 'product-loop' with settings.collection_sidebar %}
+
+      </div>
+    {% endif %}
+  {% endif %}
+
+  {% include 'pagination' %}    
+
+{% else %}
+  <div class="clearfix search_page">  
+    <br class="clear" />
+    <br class="clear" />   
+      <form class="search" action="/search">
+        <div class="eight offset-by-three columns center">
+          {% if settings.search_option != 'everything' %}
+            <input type="hidden" name="type" value="product" />
+          {% endif %}
+          <input type="text" name="q" placeholder="Search {{ shop.name }}..." value="{% if search and search.results.first.price %}{{ search.terms }}{% endif %}" autocapitalize="off" autocomplete="off" autocorrect="off" />
+      </div>
+      <div class="two columns">
+        <input type="submit" name="submit" class="action_button" value="Search" style="margin-top:0" />
+      </div>
+      </form>
+    </div>
+  </div>
+{% endif %}
+{% endpaginate %}

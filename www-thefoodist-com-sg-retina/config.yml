@@ -1,0 +1,12 @@
+---
+:api_key: 9ad4f5f843708bc916e5b98f5a9eac96
+:password: 41903d43c205b64ca033174c5547842e
+:store: foodisttest.myshopify.com
+:theme_id: 
+:whitelist_files:
+- layout/
+- assets/
+- config/
+- snippets/
+- templates/
+- locales/

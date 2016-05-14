@@ -1,0 +1,54 @@
+{% assign product_found = false %}
+{% assign skip = false %}
+
+{% capture new_row %}
+    <br class="clear product_clear" />
+{% endcapture %}
+
+{% for product in products limit: limit %}
+<!-- Bold Duplicate And Hide -->{% if item.metafields.inventory.ShappifyHidden == "true" %}{% continue %}{% endif %}
+<!-- csp tag-HIDE --> 
+    {% assign csp_visible = true %}
+    {% for product_tag in product.tags %}{% if csp_visible == true %}
+    {% capture last_tag_piece %}{{ product_tag | split: '-' | last }}{% endcapture %}
+    {% if last_tag_piece == 'HIDE' %}
+    {% capture first_tag_piece %}{{ product_tag | split: '-' | first }}{% endcapture %}
+    {% if first_tag_piece == 'default' %}
+    {% assign csp_visible = false %}
+    {% assign csp_tag_group = shop.metafields.shop_csp_tag_group.shop_csp_tag | split: ',' %}
+    {% for csp_tag in csp_tag_group %}
+    {% if customer.tags contains csp_tag %}
+    {% assign csp_visible = true %}
+    {% endif %}
+    {% endfor %}
+    {% else %}
+    {% if customer.tags contains first_tag_piece %}
+    {% assign csp_visible = false %}{% endif %}
+    {% endif %}
+    {% endif %}
+    {% endif %}
+    {% endfor %}
+    {% if csp_visible == false %}{% else %}
+
+  {% if product.id == skip_product.id or skip == true %}
+    {% assign product_found = true %}
+  {% else %}
+    {% if forloop.rindex0 == 0 and product_found == false and forloop.length != products.count and template != 'search' %}
+      {% assign skip = true %}
+    {% else %}
+
+      {% include 'product-thumbnail' with product-loop %}
+
+      {% if products_per_row == "2" %}
+        {% cycle '', new_row %}
+      {% elsif products_per_row == "3" %}
+        {% cycle '', '', new_row %}    
+      {% elsif products_per_row == "4" %}  
+        {% cycle '', '', '', new_row %}
+      {% endif %}
+    {% endif %}    
+  {% endif %}
+  
+{% endif %}
+
+{% endfor %}

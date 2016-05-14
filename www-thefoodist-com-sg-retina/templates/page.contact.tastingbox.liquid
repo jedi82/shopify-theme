@@ -1,0 +1,112 @@
+<div class="sixteen columns clearfix collection_nav">
+  <h1 class="collection_title">
+    {{ page.title }}
+  </h1>
+</div>
+
+{% form 'contact' %}
+  {% if form.posted_successfully? %}
+    <p class="quote">Thank you for your interest on the Tasting Box. We will be in touch shortly.</p>
+  {% endif %}
+
+  {% if form.errors %}
+    <p class="quote">Not all the fields have been filled in correctly. Please try again.</p>
+  {% endif %}
+
+  <div class="sixteen columns page">
+    {{ page.content }}
+  </div>
+  
+  {% if settings.contact_address != blank %}
+    <br class="clear" />
+    <br class="clear" />
+    <div class="ten columns">
+      <iframe width="100%" height="340" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="https://maps.google.com/maps?f=q&amp;source=embed&amp;hl=en&amp;geocode=&amp;q={{ settings.contact_address | replace: ' ', '+' }}&amp;z={{ settings.zoom_level }}&amp;output=embed"></iframe>
+    </div>
+  {% endif %}
+
+  <div class="six columns {% if settings.contact_address == blank %}offset-by-five{% endif %}">
+    <br class="clear" />
+    <div class="three columns alpha">
+     <label for="contact_form_name">Name <span class="red">*</span></label>
+     <input type="text" id="contact_form_name" name="contact[name]" required value="{{ contact.fields.name }}" />
+    </div>
+    <div class="three columns omega">
+     <label for="contact_form_email">Email <span class="red">*</span></label>
+     <input type="text" id="contact_form_email" name="contact[email]" required pattern="[^ @]*@[^ @]*" value="{{ contact.fields.email }}"/>
+    </div>
+
+
+    <label for="contact_form_phone">Phone Number <span class="red">*</span></label>
+    <input type="text" id="contact_form_phone" name="contact[phone]" required value="{{ contact.fields.phone }}" />
+   
+        <label for="contact_form_company">Company Name <span class="red">*</span></label>
+    <input type="text" id="contact_form_company" name="contact[company]" required value="{{ contact.fields.company }}" />
+
+        <div class="three columns alpha">
+        <label>Select Tasting Box 1:</label>
+   <select id="contactFormSelect Tasting Box 1" name="contact[Select Tasting Box 1]">
+       <option>Morsels ($22/set)</option>
+       <option>Nude Seafood ($19/set)</option>
+       <option>Two Bakers ($15/set)</option>
+       <option>The Quarters ($15/set)</option>
+       <option>Le Halo ($15/set)</option>
+       <option>E Pachi ($25/set)</option>
+       <option>East 8 ($15/set)</option>
+       <option>Candlenut ($15/set)</option>
+   </select>
+    </div>
+    <div class="three columns omega">
+     <label for="contact_form_Quantity1">Quantity 1</label>
+<input type="text" id="contact_form_Quantity1" name="contact[Quantity1]"  value="{{ contact.fields.Quantity1 }}" />
+    </div>
+    <br class="clear" />
+    <div class="three columns alpha">
+        <label>Select Tasting Box 2:</label>
+   <select id="contactFormSelect Tasting Box 2" name="contact[Select Tasting Box 2]">
+       <option>Morsels ($22/set)</option>
+       <option>Nude Seafood ($19/set)</option>
+       <option>Two Bakers ($15/set)</option>
+       <option>The Quarters ($15/set)</option>
+       <option>Le Halo ($15/set)</option>
+       <option>E Pachi ($25/set)</option>
+       <option>East 8 ($15/set)</option>
+       <option>Candlenut ($15/set)</option>
+   </select>
+    </div>
+    <div class="three columns omega">
+     <label for="contact_form_Quantity2">Quantity 2</label>
+<input type="text" id="contact_form_Quantity2" name="contact[Quantity2]"  value="{{ contact.fields.Quantity2}}" />
+    </div>
+ <br class="clear" />
+        <div class="three columns alpha">
+        <label>Select Tasting Box 3:</label>
+   <select id="contactFormSelect Tasting Box 3" name="contact[Select Tasting Box 3]">
+       <option>Morsels ($22/set)</option>
+       <option>Nude Seafood ($19/set)</option>
+       <option>Two Bakers ($15/set)</option>
+       <option>The Quarters ($15/set)</option>
+       <option>Le Halo ($15/set)</option>
+       <option>E Pachi ($25/set)</option>
+       <option>East 8 ($15/set)</option>
+       <option>Candlenut ($15/set)</option>
+   </select>
+    </div>
+    <div class="three columns omega">
+     <label for="contact_form_Quantity3">Quantity 3</label>
+<input type="text" id="contact_form_Quantity3" name="contact[Quantity3]"  value="{{ contact.fields.Quantity3}}" />
+    </div>
+    <br class="clear" />
+    
+    
+   <label for="contact_message">Additional Notes</label>       
+   <textarea id="contact_message" name="contact[body]" rows="5">{{ contact.fields.body }}</textarea>
+
+    <input type='submit' class="submit action_button add_to_cart" value="ENQUIRE" />
+  </div>
+
+  <br class="clear" />
+  <br class="clear" />
+
+{% endform %}
+  

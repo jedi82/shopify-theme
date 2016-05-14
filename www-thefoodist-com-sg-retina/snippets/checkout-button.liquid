@@ -1,0 +1,10 @@
+<!-- Check if user is logged in -->
+{% if customer %}
+<input type="submit" class="action_button add_to_cart" id="checkout" name="checkout" value="Checkout" /> 
+
+{% else %}
+ <a href="/account/login?redirectto=checkout" class="action_button right" style="width: 100%;margin-top: 0px;line-height: 18px;">Checkout</a>
+<!--<input type="submit" class="action_button add_to_cart" id="checkout" name="checkout" value="Checkout" /> -->
+
+
+{% endif %}

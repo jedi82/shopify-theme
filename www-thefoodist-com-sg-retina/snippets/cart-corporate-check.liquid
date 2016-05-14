@@ -1,0 +1,102 @@
+<script> 
+//Check cart if customer is Corporate and change product for tasting box
+var QueryString = function () {
+  // This function is anonymous, is executed immediately and 
+  // the return value is assigned to QueryString!
+  var query_string = {};
+  var query = window.location.search.substring(1);
+  var vars = query.split("&");
+  for (var i=0;i<vars.length;i++) {
+    var pair = vars[i].split("=");
+    	// If first entry with this name
+    if (typeof query_string[pair[0]] === "undefined") {
+      query_string[pair[0]] = pair[1];
+    	// If second entry with this name
+    } else if (typeof query_string[pair[0]] === "string") {
+      var arr = [ query_string[pair[0]], pair[1] ];
+      query_string[pair[0]] = arr;
+    	// If third or later entry with this name
+    } else {
+      query_string[pair[0]].push(pair[1]);
+    }
+  } 
+    return query_string;
+} ();
+  
+$( document ).ready(function() {
+{% assign corporate = 'false' %}
+{% assign needtochange = 'false' %}
+{% if customer %}
+	{% for tag in customer.tags %}
+		{% if  tag == 'Corporate' %}
+			{% assign corporate = 'true' %}
+		{% endif %}
+	{%endfor%}
+{%endif%} 
+console.log('Redirect: '+QueryString.redirectto);
+var successUrl = '/cart';
+if (QueryString.redirectto == 'checkout')
+{
+	successUrl = '/checkout'; 
+}
+var refreshWindow = 'false';
+ 
+console.log('Corporate: {{ corporate }}');
+{% for item in cart.items %}
+	{% if corporate == 'true' %}
+		{% if item.product.type == 'Tasting Box'%}
+			{% if item.title  contains 'Public' %}
+ 				{% assign needtochange = 'true' %}
+        		{% assign thequantity = item.quantity %}
+        		{% assign theproductid = item.product.id %}
+        		{% assign thevariantid = item.variant.id %}
+  				
+                console.log('Change: {{ needtochange }}');
+    			console.log('Quantity: {{ thequantity }}');
+    			console.log('Product ID: {{ theproductid }}');
+    			console.log('Variant ID: {{ thevariantid }}'); 
+                {% if item.product.id == theproductid %}
+                	{% for variantsid in item.product.variants %}
+						{% if variantsid.id == thevariantid %}
+                		{%else%}
+                			console.log('Replace this variant {{ thevariantid }} with this variant {{ variantsid.id }}');
+                            var my_id = {{ variantsid.id }};
+                            var my_qty = {{ thequantity }}
+                            var my_id1 = {{ thevariantid }};
+                            var my_qty1 = 0;
+                            var data_str = 'updates['+my_id1+']='+my_qty1+'&updates['+my_id+']='+my_qty;
+                            //jQuery.post('/cart/update.js', {updates: {944328167 : 1}});
+                            //alert(data_str);
+                            var params = {
+                              type: 'POST',
+                              url: '/cart/update.js',
+                              data: data_str,
+                              dataType: 'json',
+            				  error: function(xhr, status, error) {
+                              	var err = eval("(" + xhr.responseText + ")");
+                              	console.log(err.Message);
+                              },
+                              success: function() {
+                              	refreshWindow = 'true';
+                              }
+                            };
+                            jQuery.ajax(params);
+  						{%endif%}
+           			{% endfor %}
+      			{% endif %}
+        	{% endif %}
+       	{% endif %}
+  	{% endif %}
+{% endfor %}
+
+if (QueryString.redirectto == 'checkout')
+{
+  $("#signupa").prop("href", "/account/register?redirectto=checkout");
+  $("#create_customer").prop("action", "/account?redirectto=checkout");
+}
+if (refreshWindow == 'true')
+{
+	window.location.href = successUrl;
+}
+});
+</script>
