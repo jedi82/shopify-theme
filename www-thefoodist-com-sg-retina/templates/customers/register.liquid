@@ -18,7 +18,7 @@
   .float-right { width:49%; float:right; }
   .capitalize { text-transform: capitalize; }
   .action_bottom p.right { padding-right: 15px; padding-top: 10px; }
-  div#login_form .large { size: 30; }
+  div#login_form .large { size: 30px; }
 
 </style>
 
@@ -36,7 +36,11 @@
     <div id="customer">
       <!-- Create Customer -->
        <div id="create-customer">
-        <form accept-charset="UTF-8" action="{{ shop.secure_url }}/account" id="create_customer" onSubmit="return verify(this.email_preferred, this.password)" method="post">
+        <div id="form-errors" class="bs-callout bs-callout-warning hidden">
+          <h6>The following error(s) are encountered:</h6>
+        </div>
+
+        <form accept-charset="UTF-8" action="{{ shop.secure_url }}/account" id="create-customer" method="post" data-parsley-validate data-parsley-priority-enabled>
           <input name="form_type" type="hidden" value="create_customer"><input name="utf8" type="hidden" value="✓">
 
           {{ form.errors | default_errors }}
@@ -44,49 +48,54 @@
           <div id="name_wrapper" class="clearfix large_form" >
             <div id="first_name1" class="required float-left">
               <label for="first_name" class="login required">First Name</label>
-              <input type="text" name="customer[first_name]" id="first_name" class="large capitalize" required>
+              <input type="text" name="customer[first_name]" id="first_name" class="large capitalize" data-parsley-errors-container="div#form-errors" data-parsley-required-message='First Name is required' required>
             </div>
 
             <div id="last_name1" class="required float-right">
               <label for="last_name" class="login required">Last Name</label>
-              <input type="text" name="customer[last_name]" id="last_name" class="large capitalize" required>
+              <input type="text" name="customer[last_name]" id="last_name" class="large capitalize" data-parsley-errors-container="div#form-errors" data-parsley-required-message='Last Name is required' required>
             </div>
           </div>
 
           <div id="mobile_number1" class="required clearfix large_form">
             <label for="mobile_number" class="login required">Mobile Number</label>
-            <input type="text" name="customer[note][Mobile_Number]" id="mobile_number" class="large" required>
+            <input type="text" name="customer[note][Mobile_Number]" id="mobile_number" class="large" data-parsley-type="digits" data-parsley-errors-container="div#form-errors" data-parsley-required-message='Mobile Number is required' required>
             <p style="margin-top: -23px;font-size: 11px;"><em>For your order updates. We do not spam.</em></p>
           </div>
 
           <div id="emailblock" class="required clearfix large_form">
             <label for="email" class="login required">Preferred Email Address</label>
-            <input type="email" name="customer[email]" id="email_preferred" class="large" size="30">
+            <input type="email" name="customer[email]" id="email_preferred" class="large" data-parsley-errors-container="div#form-errors" data-parsley-required-message='Preferred Email Address is required' required>
             <p style="margin-top: -23px;font-size: 11px;"><em>For account login.</em></p>
           </div>
-
-          <div id="emailblock2" class="clearfix large_form">
+          
+          <div id="corporate-checkbox">
+            <input type="checkbox" name="corporate-customer" id="corporate-customer" value="corporate">Corporate Customers?
+            &nbsp;
+          </div>
+          
+          <div id="emailblock2" class="clearfix large_form" style="display:none">            
             <label for="email" class="login">Company Email Address</label>
-            <input type="email" name="customer[note][Corporate_Email]" id="corporate_email" class="large">
+            <input type="email" name="customer[note][Corporate_Email]" id="corporate_email" class="large" data-parsley-errors-container="div#form-errors">
             <p style="margin-top: -23px;font-size: 11px;"><em>Please provide your corporate email address to qualify for corporate rates. Corporate rates will not be reflected on Internet Explorer 9 and older versions, or if your office has firewall protection. You may wish to use another computer or smart phone when making purchase. For list of participating corporations, please click <a class="fbox" href="#corporatelinks" >here</a>.</em></p>
           </div>
 
           <input type="hidden" name="customer[tags]" id="corporate_tag">
-          <input type="hidden" value="{{ settings.company_email_suffix }}" name="customer[note][allowed_suffix]" id="email_suffix" />
+          <!--<input type="hidden" value="{{ settings.company_email_suffix }}" name="customer[note][allowed_suffix]" id="email_suffix">-->
 
           <div id="password1" class="required clearfix large_form">
             <label for="password" class="login">Create Password</label>
-            <input type="password" name="customer[password]" id="password" class="large password" required>
+            <input type="password" name="customer[password]" id="password" class="large password" minlength="6" data-parsley-type="alphanum" data-parsley-errors-container="div#form-errors" data-parsley-minlength-message='Password must have minlength if 6 chars'>
           </div>
 
           <div class="action_bottom">
-            <input class="action_button" type="submit" value="Sign Up" />
+            <input class="action_button" type="submit" value="Sign Up">
             <p class="right">
               Returning Customer? {{ "Sign In &rarr;" | customer_login_link }}
             </p>
           </div>
         </form>
-      </div>
+      </div><!-- #create-customer -->
     </div>
   </div>
 </div>
@@ -108,122 +117,41 @@
 </div>
 
 <script>
-	$(document).ready(function() {
-		
-   $(".fbox").fancybox({
-    maxWidth	: 400,
-    maxHeight	: 300,
-    fitToView	: false,
-    width		: '35%',
-    height		: '55%',
-    autoSize	: false,
-    closeClick	: false,
-    openEffect	: 'none',
-    closeEffect	: 'none'
-  });
- });
 
-  $('form#create-customer').parsley();
+$('form#create-customer').parsley().on('field:validated', function() {
+    var noErrors = $('.parsley-error').length === 0;
+    $('.bs-callout-warning').toggleClass('hidden', noErrors);
+  })
 
-//Double-enter form element script- by Jon Caws joncaws@btinternet.com
-//Visit JavaScript Kit (http://www.javascriptkit.com) for script
-//Credit must stay intact for use
+$(".fbox").fancybox({
+      maxWidth	: 400,
+      maxHeight	: 300,
+      fitToView	: false,
+      width	: '35%',
+      height : '55%',
+      autoSize  : false,
+      closeClick	: false,
+      openEffect	: 'none',
+      closeEffect	: 'none'
+});
 
-function verify(element1, element2){
+$('input[type="checkbox"]').change( function() {
+    $('div#emailblock2').toggle(this.checked);
+});
 
-  var passed=true;  
-
-  if ($("#password").val().length<6){
-
-    $('#p_content').html('The password must be at least 6 characters in length and contain letters and numbers');
-    $( "#dialog3" ).dialog();
-    passed=false;
-    return passed;
+$('form#create-customer').submit( function(event) {
+  if($("#corporate-customer").is(':checked')) {
+    var the_corporate_email = $('#corporate_email').val();
+    var email_suffixes = '{{ settings.company_email_suffix }}'.split(',');
+    console.log(the_corporate_email)
+    console.log(email_suffixes)
+    if (the_corporate_email) {
+      var res = the_corporate_email.split("@");
+      console.log('@'+res[1].trim())
+      if (email_suffixes.indexOf('@'+res[1].trim()) != -1)
+          $('#corporate_tag').val('Corporate');
+    } 
   }
-  else
-  {
-    var letterNumber = /[A-Za-z0-9_~\-!@#\$%\^&\*\(\)]+$/;
-    if($("#password").val().match(letterNumber))   
-    {  
-
-    }  
-    else  
-    {   
-     $('#p_content').html('The password must only contain letters, numbers and the following chacters _~-!@#$%^&*()');
-     $( "#dialog3" ).dialog();
-     passed=false;
-     return passed; 
-   } 
- }
-
- var Numbers = /^[0-9]+$/;  
- if($("#mobile_number").val().match(Numbers))   
- {  
-
- }  
- else  
- {   
-   $('#p_content').html('The mobile number must only contain numbers');
-   $( "#dialog3" ).dialog();
-   passed=false;
-   return passed; 
- } 
-
-
-
- //Check the company email suffix
- var the_corporate_email = $('#corporate_email').val();
- var corporate_email_true = 'false';
- var res = the_corporate_email.split("@");
- 
- var email_suffixes = $('#email_suffix').val().split(',');
- for (i = 0; i < email_suffixes.length; i++) { 
-   if ('@'+res[1].trim() == email_suffixes[i].trim())
-   {
-    $('#corporate_tag').val('Corporate');
-    corporate_email_true = 'true';
-  }
-}
-if (corporate_email_true == 'false')
-{
-  $('#corporate_email').val('');
-}
-return passed
-
-}
-
-
-$('#first_name').keyup(function(evt){
-
-      // force: true to lower case all letter except first
-      //var cp_value= ucfirst($(this).val(),true) ;
-
-      // to capitalize all words  
-      var cp_value= ucwords($(this).val(),true) ;
-
-      $(this).val(cp_value );
-
-    });
-
-$('#last_name').keyup(function(evt){
-
-      // force: true to lower case all letter except first
-      //var cp_value= ucfirst($(this).val(),true) ;
-
-      // to capitalize all words  
-      var cp_value= ucwords($(this).val(),true) ;
-
-      $(this).val(cp_value );
-
-    });
-
-function ucwords(str,force){
-  str=force ? str.toLowerCase() : str;  
-  return str.replace(/(\b)([a-zA-Z])/g,
-   function(firstLetter){
-    return   firstLetter.toUpperCase();
-  });
-}
-
-
+  else $('#corporate_email').val('');
+});
 </script>	

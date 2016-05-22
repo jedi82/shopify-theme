@@ -45,6 +45,7 @@
 
     <!-- Stylesheets -->
     {{ 'styles.css' | asset_url | stylesheet_tag }}
+    {{ 'parsley.css' | asset_url | stylesheet_tag }}
     <!--[if lte IE 9]>
       {{ 'ie.css' | asset_url | stylesheet_tag }}
     <![endif]-->
@@ -71,16 +72,15 @@
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
     <script>window.jQuery || document.write("<script src='{{ "jquery.min.js" | asset_url }}'>\x3C/script>")</script>
     {{ 'app.js' | asset_url | script_tag }}
+    {{ 'parsley.min.js' | asset_url | script_tag }}
     {% if settings.product_slideshow_animation == 'zoom' %}{{ "cloudzoom.js" | asset_url | script_tag }}{% endif %}
     {{ 'option_selection.js' | shopify_asset_url | script_tag }}        
     {{ content_for_header }}
      {% if template contains 'customer' %}
       <link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
-    <script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
-    {% endif %}
-    <script src="parsley.min.js"></script>
+      <script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+    {% endif %}        
     <script async src="https://collection-filter-www.herokuapp.com/collection-filter-v1.js?shop={{shop.permanent_domain}}"></script>
-
     
   </head>
   <body class="{{ template | replace: '.', ' ' | truncatewords: 1, '' | handle }}">
@@ -498,12 +498,13 @@
     {% include 'newsletter-popup' %}
     {% include 'currencies' %}
     {% include 'cart-corporate-check' %}
+
 <script type="text/javascript" charset="utf-8">
-var shappify_customer_tags ={{ customer.tags|json }}
+  var shappify_customer_tags = {{ customer.tags | json }}
 </script>    
     
-    
     {% if template == 'cart' %}
+
 <script>
 jQuery(function() {
   jQuery('input[name="checkout"], input[name="goto_pp"], input[name="goto_gc"], button[name="checkout"]').click(function() {
@@ -528,11 +529,8 @@ jQuery(function() {
 });
 </script>
 {% endif %}
-
 	
   {% include 'modify_lightbox_snippet' %}
-  
-
   {% include 'sweettooth-widgets' %}
 
 </body>
