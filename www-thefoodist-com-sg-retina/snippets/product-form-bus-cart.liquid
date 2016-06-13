@@ -103,11 +103,7 @@
       {% endif %}
       <input type="submit" name="add" value="Book a Seat" class="action_button add_to_cart2"  />
     </div>  
-    <div class="purchase clearfix {% if settings.display_product_quantity %}inline_purchase{% endif %}">
-    <!--Start: SC Request a Quote -->
-    <span class="sc-raq-add-to-quote-btn-hldr" scr-vid={{product.variants.first.id }} scr-pid="{{ product.id }}"></span>
-    <!--End: SC Request a Quote -->
-    </div>
+    
   </form>
 
   {% if product.variants.size > 1 or product.options.size > 1 %}

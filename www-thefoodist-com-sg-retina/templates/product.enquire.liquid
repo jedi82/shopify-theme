@@ -231,7 +231,6 @@ Product is not available
           <div class="description" itemprop="description">
             {{ product.description | split: '<!-- split -->' | first }}
           </div>
-       		<div id="shopify-product-reviews" data-id="{{product.id}}">{{ product.metafields.spr.reviews }}</div>    
         {% endif %}
        {% endif %}
 		
@@ -239,10 +238,10 @@ Product is not available
        {% if product.type == "Tasting Box" %}
           {% if deadline == 'true' %}
          {%else%}
-         {% include 'product-form' %}
+         {% include 'product-form-enquire' %}
           {%endif%}
        {%else%}
-        {% include 'product-form' %}
+        {% include 'product-form-enquire' %}
        {%endif%}
        
        {% if settings.product_description_position == "bottom" %}
@@ -309,9 +308,7 @@ Product is not available
         {{ product.description | split: '<!-- split -->' | last }}
       </div>
     </div>
-  {% endif %}
-
-    
+  {% endif %}  		        
 
   {% if settings.display_related_products %}
     {% capture limit %}{{ settings.products_per_row | plus: 1 }}{% endcapture %}

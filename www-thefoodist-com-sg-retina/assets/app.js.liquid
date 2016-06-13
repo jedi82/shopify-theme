@@ -273,6 +273,10 @@ $(function() {
       $('.add_to_cart', $product).removeClass('disabled').removeAttr('disabled').val('{{ settings.add_to_cart_text | escape }}');
       $('.add_to_cart2', $product).removeClass('disabled').removeAttr('disabled').val('Book a Seat');
       $notify_form.hide();
+      //Start: SC Request a Quote
+      if (typeof raq_Update_Variant == 'function')
+      raq_Update_Variant(variant, selector);
+      //End: SC Request a Quote
     } else {
       var message = variant ? "{{ settings.sold_out_text | escape }}" : "Out of Stock";    
       $('.was_price', $product).text('');

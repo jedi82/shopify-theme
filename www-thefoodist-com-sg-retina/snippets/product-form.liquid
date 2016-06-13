@@ -1,4 +1,3 @@
-
 <!-- Bold Apps: Customer Pricing -->
 {% include 'shappify-csp' %}
 
@@ -93,6 +92,11 @@
         <input type="hidden" name="return_to" value="back" />
       {% endif %}
       <input type="submit" name="add" value="{{ settings.add_to_cart_text | escape }}" class="action_button add_to_cart" onclick="return(checkCollection());" />
+    </div>
+    <div class="raq_btn purchase clearfix {% if settings.display_product_quantity %}inline_purchase{% endif %}">
+    <!--Start: SC Request a Quote -->
+    <span class="sc-raq-add-to-quote-btn-hldr" scr-vid={{product.variants.first.id }} scr-pid="{{ product.id }}"></span>
+    <!--End: SC Request a Quote -->
     </div>
     <div class="iWishAddLink left clearfix">
 	   	{% include 'iwish' with 'iwishproduct' %}

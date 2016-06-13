@@ -1,3 +1,6 @@
+<!-- Bold Apps: Customer Pricing -->
+{% include 'shappify-csp' %}
+
 {% assign option_to_match = settings.option_to_match %}
 {% assign option_index = 0 %}
 {% for option in product.options %}
@@ -6,55 +9,41 @@
   {% endif %}
 {% endfor %}
 
-<!-- Get the total number of available seats from settings -->
-{% assign seats =  product.metafields.maxsku.maxsku  %}
-
-<!-- Get the total number of seats in inventory -->
-{% assign seats_var1 = 0 %}
-{% assign seats_var2 = 0 %}
-{% assign i_index = 0 %}
-{% assign one_bus = 23 %}
-{% assign bus_sold_out = 'false' %}
-
-<!--<p>Total Seats {{ seats }}</p>-->
-
-{% for variant in product.variants %}
-	{% if i_index == 0 %}
-		{% assign seats_on_1 = variant.inventory_quantity | minus: 1  %}
-		{% assign seats_var1 = one_bus | minus: seats_on_1 %}
-		
-	
-	{% else %}
-		{% assign seats_on_2 = variant.inventory_quantity %}
-	{% assign seats_var2 = one_bus | minus: seats_on_2 %}
-	
-	{% endif %}
-{% assign i_index = i_index | plus: 1 %}
-{%endfor%}
-
-
-<!-- How many are available for Bus 1 -->
-{% assign seats_available = seats | minus: seats_var1 %}
-{% assign seats_available = seats_available | minus: seats_var2 %}
-
-{% if seats_available == 0 %}
-	{% assign bus_sold_out = 'true' %}
+<!-- Custom code DB  -->
+{% assign corporate = 'false' %}
+{% if customer %}
+{% for tag in customer.tags %}
+{% if  tag == 'Corporate' %}
+{% assign corporate = 'true' %}
 {% endif %}
-
-<!--<p>Seats Available  {{ seats_available }} and Bus sold out {{ bus_sold_out }}</p>-->
-    
+{%endfor%}
+{%endif%}
 
 {% if product.available %}
-  <form action="/cart/add" method="post" class="shappify_add_to_cart_form clearfix product_form" data-money-format="{{ shop.money_format }}" data-shop-currency="{{ shop.currency }}" data-option-index="{{ option_index }}" id="product-form-{{ product.id }}" onsubmit="return(checkBus());" data-product-id="{{ product.id }}" enctype="multipart/form-data">
-  
-    
+  <form action="/cart/add" method="post" class="shappify_add_to_cart_form clearfix product_form" data-money-format="{{ shop.money_format }}" data-shop-currency="{{ shop.currency }}" data-option-index="{{ option_index }}" data-product-id="{{ product.id }}" id="product-form-{{ product.id }}" enctype="multipart/form-data">
+     
     {% if settings.display_inventory_left %}
-      <div class="items_left">
+      <div class="items_left_2">
         {% if product.variants.first.inventory_management == "shopify" and product.variants.first.inventory_quantity > 0 %}
-          <p><em>{{ product.variants.first.inventory_quantity }} {{ settings.inventory_left_text | escape }}</em></p>
+         {% assign number_items_left = product.variants.first.inventory_quantity | minus :1 %}
+        <p><em>{{ number_items_left }} {{ settings.inventory_left_text | escape }}</em></p>
         {% endif %}
       </div>
     {% endif %}
+    
+     <!-- Custom code DB  -->
+     {% if product.type == "Tasting Box" %}
+    	{%comment%} Disabled collection points {% include 'collection-points' %}{%endcomment%}
+     <input type="hidden" id="all_variants" name="properties[all_variants]" value="{% for variant in product.variants %}{{ variant.id }},{%endfor%}"/>
+    
+    	{% if corporate == 'true' %}
+    		<input type="hidden" id="product-select-{{ product.id }}" name="id" value="{{ product.variants[1].id}}"/>
+    	
+    {%else%}
+       	<input type="hidden" id="product-select-{{ product.id }}" name="id" value="{{ product.variants[0].id}}"/>
+   		
+    {%endif%}
+    {%else%}
     
     {% if product.options.size > 1 %}
       <div class="select">
@@ -90,7 +79,8 @@
     {% else %}
       <input type="hidden" name="id" value="{{ product.variants.first.id }}" />
     {% endif %}
- 	<!-- Bold: Options -->{% include 'shappify-options' %} 
+ {%endif%}
+    <!-- Bold: Options -->{% include 'shappify-options' %}
     {% if settings.display_product_quantity %}
       <div class="left">
         <label for="quantity">Quantity:</label>
@@ -101,12 +91,10 @@
       {% if settings.cart_return == 'back' %}
         <input type="hidden" name="return_to" value="back" />
       {% endif %}
-      <input type="submit" name="add" value="Book a Seat" class="action_button add_to_cart2"  />
-    </div>  
-    <div class="purchase clearfix {% if settings.display_product_quantity %}inline_purchase{% endif %}">
-    <!--Start: SC Request a Quote -->
-    <span class="sc-raq-add-to-quote-btn-hldr" scr-vid={{product.variants.first.id }} scr-pid="{{ product.id }}"></span>
-    <!--End: SC Request a Quote -->
+      <input type="submit" name="add" value="{{ settings.add_to_cart_text | escape }}" class="action_button add_to_cart" onclick="return(checkCollection());" />
+    </div>    
+    <div class="iWishAddLink left clearfix">
+	   	{% include 'iwish' with 'iwishproduct' %}
     </div>
   </form>
 
@@ -144,6 +132,8 @@
  
     
       
+          {% if product.type == "Tasting Box" %} 
+            {%else%}
           $product = $('#product-' + {{ product.id }});
           if($('.single-option-selector', $product).length == 0) {
             new Shopify.OptionSelectors("product-select-{{ product.id }}", { product: sawholesale_product_json({{ product | json }}), onVariantSelected: selectCallback });
@@ -152,8 +142,8 @@
               {% assign found_one_in_stock = false %}
               {% for variant in product.variants %}
             
-{% include 'shappify-variant-is-csp' %}
-{% if csp_variant == 1 %}            
+
+       
             
                 {% if variant.available and found_one_in_stock == false %}
                   {% assign found_one_in_stock = true %}
@@ -162,98 +152,30 @@
                   {% endfor %}
                 {% endif %}
             
-{% endif %}            
+          
             
               {% endfor %}
             {% endif %}
+            {%endif%}
           }
         });
       // ]]>
     </script>
   {% endif %}
 {% endif %}
-
-<script type="text/javascript">
-  function checkBus()
-  {
-    var them = '';
-    //Get the qty and the variant entered
-    var qty = $('#quantity').val();
-    var whichBus = '';
-    var noseatsleft = 'false';
-    
-    var total_alloc = (parseInt(23-{{seats_on_1 }}) + parseInt(23-{{seats_on_2}}));
-   //alert('allocated' + total_alloc);
-    if ($('.single-option-selector').val() == 'Bus at 12:00pm')
-    {
-      whichBus = '1';
-      if ({{ seats_on_1 }} >= qty)
-      {
-        total_alloc = total_alloc + parseInt(qty);
-       // alert('allocated at 1' + total_alloc);
-        if (total_alloc > 35)
-        {
-           them = 'Seats for the Bus at 12:00pm have been fully reserved. Please select an alternative boarding time.';
-        noseatsleft = 'true';
-       
-        }
-        else
-        {
-          
-          
-     //   them = 'There are enough seats left on 1';
-        noseatsleft = 'false';
-        }
-        }
-      else
-      {
-        them = 'Seats for the Bus at 12:00pm have been fully reserved. Please select an alternative boarding time.';
-        noseatsleft = 'true';
-      }
-    }
-    else
-    {
-      whichBus = '2';
-        if ({{ seats_on_2 }} >= qty)
-      {
-        total_alloc = total_alloc + parseInt(qty);
-       // alert('allocated at 2' + total_alloc);
-        if (total_alloc > 35)
-        {
-           them = 'Seats for the Bus at 12:30pm have been fully reserved. Please select an alternative boarding time.';
-        noseatsleft = 'true';
-        }
-        else
-        {
-          
-      
-      //  them = 'There are	enough seats left on 2 :: qty :: ' + qty + ' :: seats on 2 :: '+{{ seats_on_2 }};
-        noseatsleft = 'false';
-        }
-        }
-      else
-      {
-         them = 'Seats for the Bus at 12:30pm have been fully reserved. Please select an alternative boarding time.';
-        noseatsleft = 'true';
-      }
-    }
-   
-    //them = them +' ::: Quantity selected '+ qty + ' Bus Number ' + whichBus +' Seats on bus 1 ' + {{ seats_on_1 }} + ' and seats on bus 2 ' + {{ seats_on_2 }} + ' and total seats left ' + {{ seats_available }};
-  
-    var bus_sold_out = {{ bus_sold_out }};
-    // alert(bus_sold_out);
-      if (bus_sold_out == false && noseatsleft == 'false')
-    {
-       
-    return true;
-    
-    }
-    else
-    {
-     alert(them);
-    return false;
-    }
-    
-  
-  }
+<script>
+//  function checkCollection()
+//  {
+//    var value = $('#collection_point').val();
+//   
+//   if(value == 'na')
+//   {
+//    alert('Please select your required collection point before proceeding.');
+//     return false;
+//   }
+//    else
+//    {
+//      return true;
+//    }
+//  }
 </script>
